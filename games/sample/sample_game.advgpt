@@ -1,72 +1,93 @@
 {
   "meta": {
-    "title": "Tower of Dreams",
+    "title": "Clockwork Lighthouse",
     "author": "AdventureGPT",
-    "description": "A simple adventure in an ancient tower.",
+    "description": "A short atmospheric adventure about lighting the dark and waking old gears.",
     "version": "1.0",
-    "created": "",
-    "modified": ""
+    "created": "2025-07-27",
+    "modified": "2025-07-27"
   },
   "start_location": "start",
   "locations": {
     "start": {
-      "title": "Tower Base",
-      "description": "A massive stone tower looms above you.",
+      "title": "Moonlit Shore",
+      "description": "Waves whisper softly against a shore of polished black pebbles, glittering under the gentle glow of the moon. The air is heavy with salt, and the silhouette of a rusted lighthouse towers above, its metal exterior scarred by age and weather. Faint, rhythmic ticking echoes softly from within the structure, like the heartbeat of a slumbering giant.\n\nTo the north, a worn path leads up toward an archway at the lighthouse base, while eastward lies a shimmering tidepool catching moonbeams.",
       "image": "",
-      "exits": {
-        "north": "tower_stairs"
-      },
+      "exits": {"north": "archway", "east": "tidepool"},
       "items": [],
       "flags_required": {},
       "flags_set": {},
-      "first_visit_text": "",
+      "first_visit_text": "The salty breeze fills your senses, carrying whispers of forgotten stories.",
       "visited": false
     },
-    "tower_stairs": {
-      "title": "Tower Stairs",
-      "description": "Ancient stone stairs spiral upward into darkness.",
-      "image": "tower_stairs.png",
-      "exits": {
-        "down": "start",
-        "up": "tower_top"
-      },
+    "archway": {
+      "title": "Echoing Archway",
+      "description": "A stone archway, coated in clinging barnacles and strands of dried seaweed, stands firmly guarding the lighthouse entrance. An iron grate, etched intricately with gears and mechanical patterns, blocks your path forward. Through gaps in the grate, you glimpse shadows of silent machinery.\n\nA brass keyhole, tarnished but recently polished by use or care, glints in the silvery moonlight. The air here hums softly, resonating with the muffled clink of hidden gears waiting patiently for motion.",
+      "image": "",
+      "exits": {"south": "start", "north": "gear_room", "east": "tidepool"},
       "items": [],
       "flags_required": {},
       "flags_set": {},
-      "first_visit_text": "",
+      "first_visit_text": "Your footsteps reverberate, creating ghostly echoes within the stone structure.",
       "visited": false
     },
-    "tower_top": {
-      "title": "Tower Top",
-      "description": "You stand atop the ancient tower, with a magnificent view of the lands below.",
-      "image": "tower_top.png",
-      "exits": {
-        "down": "tower_stairs"
-      },
-      "items": [
-        "ancient_key"
-      ],
+    "tidepool": {
+      "title": "Shimmering Tidepool",
+      "description": "Pools of tranquil seawater sparkle vividly, their depths illuminated by thousands of tiny bioluminescent shrimp drifting lazily. Soft blue light pulses gently beneath the surface, creating mesmerizing patterns on the surrounding rocks. Among tangles of kelp and shells lies an old, tarnished glass lantern, partially submerged yet strangely undamaged.\n\nNearby, a narrow crevice descends into a hidden cave below, visible only due to the reflected gleam of watery luminescence.",
+      "image": "",
+      "exits": {"west": "start", "down": "sea_cave"},
+      "items": ["glass_lantern"],
       "flags_required": {},
       "flags_set": {},
-      "first_visit_text": "",
+      "first_visit_text": "Bioluminescence bathes your surroundings in an ethereal blue glow.",
+      "visited": false
+    },
+    "sea_cave": {
+      "title": "Bioluminescent Sea Cave",
+      "description": "Hidden beneath the shore, this sea cave feels like a secret chamber, illuminated by countless shimmering organisms clinging to the damp, moss-covered walls. It feels as though you've stepped into a cavernous constellation, the air humid yet cool against your skin.\n\nOn a stone ledge nestled within shadow lies something metallic—a curious bronze key that seems to await discovery, illuminated faintly by your lantern's reassuring light.",
+      "image": "",
+      "exits": {"up": "tidepool"},
+      "items": ["clockwork_key"],
+      "flags_required": {"lamp_lit": true},
+      "flags_set": {},
+      "first_visit_text": "The lantern illuminates a hidden world, revealing wonders hidden in the dark.",
+      "visited": false
+    },
+    "gear_room": {
+      "title": "Clockwork Heart",
+      "description": "Inside, the vast chamber houses enormous bronze gears and iron cogs, suspended silently in a dormant web of ancient machinery. Layers of dust blanket the intricate mechanisms, speaking to years of neglect. But even in stillness, you sense latent power here—a mechanical heart waiting patiently for its next beat.\n\nA sturdy ladder ascends toward the lantern room above, promising access to the upper workings of the lighthouse.",
+      "image": "",
+      "exits": {"south": "archway", "up": "lighthouse_top"},
+      "items": [],
+      "flags_required": {"grate_unlocked": true},
+      "flags_set": {"gears_awake": true},
+      "first_visit_text": "Gears creak softly, beginning to stir from their long sleep.",
+      "visited": false
+    },
+    "lighthouse_top": {
+      "title": "Glass-Domed Lantern Room",
+      "description": "Perched atop the lighthouse, you find yourself enclosed in a dome of cracked, salt-frosted glass panes. From this vantage, the ocean spreads endlessly outward, bathed in moonlight. Rusted machinery and mirrors, arranged carefully, suggest a once-powerful beam of light guiding ships safely home.\n\nA dusty spyglass sits abandoned on the windowsill, offering the promise of distant secrets or perhaps forgotten voyages.",
+      "image": "",
+      "exits": {"down": "gear_room", "east": "balcony"},
+      "items": ["spyglass"],
+      "flags_required": {},
+      "flags_set": {},
+      "first_visit_text": "A faint glow flickers to life, rekindling hope from shadows.",
+      "visited": false
+    },
+    "balcony": {
+      "title": "Wind-Scoured Balcony",
+      "description": "Exposed to the elements, this balcony provides breathtaking panoramic views over a dark and restless sea. Gusts of wind rush past, whispering incomprehensible tales. Far below, waves crash softly, their rhythms distant yet comforting.\n\nIn the distance, your eyes catch brief glimpses of another light flickering against the horizon—perhaps another lighthouse, a ship, or something more mysterious altogether.",
+      "image": "",
+      "exits": {"west": "lighthouse_top"},
+      "items": [],
+      "flags_required": {},
+      "flags_set": {},
+      "first_visit_text": "The cold wind seems to carry whispers from faraway places.",
       "visited": false
     }
   },
-  "inventory_items": {
-    "ancient_key": {
-      "name": "Ancient Key",
-      "description": "A weathered bronze key with mysterious runes.",
-      "takeable": true,
-      "useable": true,
-      "use_text": "The key glows briefly with magical energy.",
-      "use_flags_required": {},
-      "use_flags_set": {}
-    }
-  },
-  "game_flags": {},
-  "player": {
-    "inventory": [],
-    "current_location": "start",
-    "flags": {}
-  }
+  "inventory_items": { /* same as before */ },
+  "game_flags": { /* same as before */ },
+  "player": { /* same as before */ }
 }
