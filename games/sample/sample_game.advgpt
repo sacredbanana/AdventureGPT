@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "title": "Tower of Dreams",
+    "author": "AdventureGPT",
+    "description": "A simple adventure in an ancient tower.",
+    "version": "1.0",
+    "created": "",
+    "modified": ""
+  },
+  "start_location": "start",
+  "locations": {
+    "start": {
+      "title": "Tower Base",
+      "description": "A massive stone tower looms above you.",
+      "image": "",
+      "exits": {
+        "north": "tower_stairs"
+      },
+      "items": [],
+      "flags_required": {},
+      "flags_set": {},
+      "first_visit_text": "",
+      "visited": false
+    },
+    "tower_stairs": {
+      "title": "Tower Stairs",
+      "description": "Ancient stone stairs spiral upward into darkness.",
+      "image": "tower_stairs.png",
+      "exits": {
+        "down": "start",
+        "up": "tower_top"
+      },
+      "items": [],
+      "flags_required": {},
+      "flags_set": {},
+      "first_visit_text": "",
+      "visited": false
+    },
+    "tower_top": {
+      "title": "Tower Top",
+      "description": "You stand atop the ancient tower, with a magnificent view of the lands below.",
+      "image": "tower_top.png",
+      "exits": {
+        "down": "tower_stairs"
+      },
+      "items": [],
+      "flags_required": {},
+      "flags_set": {},
+      "first_visit_text": "",
+      "visited": false
+    }
+  },
+  "inventory_items": {},
+  "game_flags": {},
+  "player": {
+    "inventory": [],
+    "current_location": "start",
+    "flags": {}
+  }
+}
