@@ -1,5 +1,5 @@
 #include "adventure_engine.h"
-#include <cjson/cJSON.h>
+#include <json-c/json.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,66 +43,95 @@ char* read_file(const char* filename) {
     return buffer;
 }
 
+// Helper function to get string from json object
+const char* get_json_string(json_object* obj, const char* key) {
+    json_object* value;
+    if (json_object_object_get_ex(obj, key, &value)) {
+        if (json_object_is_type(value, json_type_string)) {
+            return json_object_get_string(value);
+        }
+    }
+    return NULL;
+}
+
+// Helper function to get boolean from json object
+bool get_json_bool(json_object* obj, const char* key) {
+    json_object* value;
+    if (json_object_object_get_ex(obj, key, &value)) {
+        if (json_object_is_type(value, json_type_boolean)) {
+            return json_object_get_boolean(value);
+        }
+    }
+    return false;
+}
+
 // Parse location from JSON
-bool parse_location(cJSON* location_json, Location* location, const char* location_id) {
+bool parse_location(json_object* location_json, Location* location, const char* location_id) {
     if (!location_json || !location) return false;
     
     // Set location ID
     safe_strcpy(location->id, location_id, sizeof(location->id));
     
     // Parse basic properties
-    cJSON* title = cJSON_GetObjectItem(location_json, "title");
-    if (title && cJSON_IsString(title)) {
-        safe_strcpy(location->title, title->valuestring, sizeof(location->title));
+    const char* title = get_json_string(location_json, "title");
+    if (title) {
+        safe_strcpy(location->title, title, sizeof(location->title));
     }
     
-    cJSON* description = cJSON_GetObjectItem(location_json, "description");
-    if (description && cJSON_IsString(description)) {
-        safe_strcpy(location->description, description->valuestring, sizeof(location->description));
+    const char* description = get_json_string(location_json, "description");
+    if (description) {
+        safe_strcpy(location->description, description, sizeof(location->description));
     }
     
-    cJSON* image = cJSON_GetObjectItem(location_json, "image");
-    if (image && cJSON_IsString(image)) {
-        safe_strcpy(location->image_path, image->valuestring, sizeof(location->image_path));
+    const char* image = get_json_string(location_json, "image");
+    if (image) {
+        safe_strcpy(location->image_path, image, sizeof(location->image_path));
     }
     
-    cJSON* first_visit = cJSON_GetObjectItem(location_json, "first_visit_text");
-    if (first_visit && cJSON_IsString(first_visit)) {
-        safe_strcpy(location->first_visit_text, first_visit->valuestring, sizeof(location->first_visit_text));
+    const char* first_visit = get_json_string(location_json, "first_visit_text");
+    if (first_visit) {
+        safe_strcpy(location->first_visit_text, first_visit, sizeof(location->first_visit_text));
     }
     
-    cJSON* visited = cJSON_GetObjectItem(location_json, "visited");
-    if (visited && cJSON_IsBool(visited)) {
-        location->visited = cJSON_IsTrue(visited);
-    }
+    location->visited = get_json_bool(location_json, "visited");
     
     // Parse exits
-    cJSON* exits = cJSON_GetObjectItem(location_json, "exits");
-    if (exits && cJSON_IsObject(exits)) {
-        location->exits_count = 0;
-        cJSON* exit = NULL;
-        cJSON_ArrayForEach(exit, exits) {
-            if (location->exits_count >= MAX_EXITS) break;
+    json_object* exits;
+    if (json_object_object_get_ex(location_json, "exits", &exits)) {
+        if (json_object_is_type(exits, json_type_object)) {
+            location->exits_count = 0;
             
-            safe_strcpy(location->exits[location->exits_count].direction, 
-                       exit->string, sizeof(location->exits[location->exits_count].direction));
-            safe_strcpy(location->exits[location->exits_count].target_location, 
-                       exit->valuestring, sizeof(location->exits[location->exits_count].target_location));
-            location->exits_count++;
+            // Iterate through exits object
+            json_object_object_foreach(exits, direction, target_obj) {
+                if (location->exits_count >= MAX_EXITS) break;
+                
+                if (json_object_is_type(target_obj, json_type_string)) {
+                    safe_strcpy(location->exits[location->exits_count].direction, 
+                               direction, sizeof(location->exits[location->exits_count].direction));
+                    safe_strcpy(location->exits[location->exits_count].target_location, 
+                               json_object_get_string(target_obj), 
+                               sizeof(location->exits[location->exits_count].target_location));
+                    location->exits_count++;
+                }
+            }
         }
     }
     
     // Parse items
-    cJSON* items = cJSON_GetObjectItem(location_json, "items");
-    if (items && cJSON_IsArray(items)) {
-        location->items_count = 0;
-        cJSON* item = NULL;
-        cJSON_ArrayForEach(item, items) {
-            if (location->items_count >= MAX_ITEMS) break;
-            if (cJSON_IsString(item)) {
-                safe_strcpy(location->items[location->items_count], 
-                           item->valuestring, sizeof(location->items[location->items_count]));
-                location->items_count++;
+    json_object* items;
+    if (json_object_object_get_ex(location_json, "items", &items)) {
+        if (json_object_is_type(items, json_type_array)) {
+            location->items_count = 0;
+            int array_len = json_object_array_length(items);
+            
+            for (int i = 0; i < array_len && location->items_count < MAX_ITEMS; i++) {
+                json_object* item = json_object_array_get_idx(items, i);
+                if (json_object_is_type(item, json_type_string)) {
+                    safe_strcpy(location->items[location->items_count], 
+                               json_object_get_string(item), 
+                               sizeof(location->items[location->items_count]));
+                    location->items_count++;
+                }
             }
         }
     }
@@ -111,34 +140,27 @@ bool parse_location(cJSON* location_json, Location* location, const char* locati
 }
 
 // Parse inventory item from JSON
-bool parse_inventory_item(cJSON* item_json, InventoryItem* item, const char* item_id) {
+bool parse_inventory_item(json_object* item_json, InventoryItem* item, const char* item_id) {
     if (!item_json || !item) return false;
     
     safe_strcpy(item->id, item_id, sizeof(item->id));
     
-    cJSON* name = cJSON_GetObjectItem(item_json, "name");
-    if (name && cJSON_IsString(name)) {
-        safe_strcpy(item->name, name->valuestring, sizeof(item->name));
+    const char* name = get_json_string(item_json, "name");
+    if (name) {
+        safe_strcpy(item->name, name, sizeof(item->name));
     }
     
-    cJSON* description = cJSON_GetObjectItem(item_json, "description");
-    if (description && cJSON_IsString(description)) {
-        safe_strcpy(item->description, description->valuestring, sizeof(item->description));
+    const char* description = get_json_string(item_json, "description");
+    if (description) {
+        safe_strcpy(item->description, description, sizeof(item->description));
     }
     
-    cJSON* takeable = cJSON_GetObjectItem(item_json, "takeable");
-    if (takeable && cJSON_IsBool(takeable)) {
-        item->takeable = cJSON_IsTrue(takeable);
-    }
+    item->takeable = get_json_bool(item_json, "takeable");
+    item->useable = get_json_bool(item_json, "useable");
     
-    cJSON* useable = cJSON_GetObjectItem(item_json, "useable");
-    if (useable && cJSON_IsBool(useable)) {
-        item->useable = cJSON_IsTrue(useable);
-    }
-    
-    cJSON* use_text = cJSON_GetObjectItem(item_json, "use_text");
-    if (use_text && cJSON_IsString(use_text)) {
-        safe_strcpy(item->use_text, use_text->valuestring, sizeof(item->use_text));
+    const char* use_text = get_json_string(item_json, "use_text");
+    if (use_text) {
+        safe_strcpy(item->use_text, use_text, sizeof(item->use_text));
     }
     
     return true;
@@ -150,7 +172,7 @@ GameState* load_game(const char* filename) {
         return NULL;
     }
     
-    cJSON* json = cJSON_Parse(file_content);
+    json_object* json = json_tokener_parse(file_content);
     free(file_content);
     
     if (!json) {
@@ -161,74 +183,80 @@ GameState* load_game(const char* filename) {
     GameState* game = calloc(1, sizeof(GameState));
     if (!game) {
         printf("Error: Could not allocate memory for game state\n");
-        cJSON_Delete(json);
+        json_object_put(json);
         return NULL;
     }
     
     // Parse metadata
-    cJSON* meta = cJSON_GetObjectItem(json, "meta");
-    if (meta) {
-        cJSON* title = cJSON_GetObjectItem(meta, "title");
-        if (title && cJSON_IsString(title)) {
-            safe_strcpy(game->meta.title, title->valuestring, sizeof(game->meta.title));
+    json_object* meta;
+    if (json_object_object_get_ex(json, "meta", &meta)) {
+        const char* title = get_json_string(meta, "title");
+        if (title) {
+            safe_strcpy(game->meta.title, title, sizeof(game->meta.title));
         }
         
-        cJSON* author = cJSON_GetObjectItem(meta, "author");
-        if (author && cJSON_IsString(author)) {
-            safe_strcpy(game->meta.author, author->valuestring, sizeof(game->meta.author));
+        const char* author = get_json_string(meta, "author");
+        if (author) {
+            safe_strcpy(game->meta.author, author, sizeof(game->meta.author));
         }
         
-        cJSON* description = cJSON_GetObjectItem(meta, "description");
-        if (description && cJSON_IsString(description)) {
-            safe_strcpy(game->meta.description, description->valuestring, sizeof(game->meta.description));
+        const char* description = get_json_string(meta, "description");
+        if (description) {
+            safe_strcpy(game->meta.description, description, sizeof(game->meta.description));
         }
         
-        cJSON* version = cJSON_GetObjectItem(meta, "version");
-        if (version && cJSON_IsString(version)) {
-            safe_strcpy(game->meta.version, version->valuestring, sizeof(game->meta.version));
+        const char* version = get_json_string(meta, "version");
+        if (version) {
+            safe_strcpy(game->meta.version, version, sizeof(game->meta.version));
         }
     }
     
     // Parse start location
-    cJSON* start_location = cJSON_GetObjectItem(json, "start_location");
-    if (start_location && cJSON_IsString(start_location)) {
-        safe_strcpy(game->start_location, start_location->valuestring, sizeof(game->start_location));
+    const char* start_location = get_json_string(json, "start_location");
+    if (start_location) {
+        safe_strcpy(game->start_location, start_location, sizeof(game->start_location));
     }
     
     // Parse locations
-    cJSON* locations = cJSON_GetObjectItem(json, "locations");
-    if (locations && cJSON_IsObject(locations)) {
-        game->locations_count = 0;
-        cJSON* location = NULL;
-        cJSON_ArrayForEach(location, locations) {
-            if (game->locations_count >= MAX_LOCATIONS) break;
+    json_object* locations;
+    if (json_object_object_get_ex(json, "locations", &locations)) {
+        if (json_object_is_type(locations, json_type_object)) {
+            game->locations_count = 0;
             
-            if (parse_location(location, &game->locations[game->locations_count], location->string)) {
-                game->locations_count++;
+            // Iterate through locations object
+            json_object_object_foreach(locations, location_id, location_obj) {
+                if (game->locations_count >= MAX_LOCATIONS) break;
+                
+                if (parse_location(location_obj, &game->locations[game->locations_count], location_id)) {
+                    game->locations_count++;
+                }
             }
         }
     }
     
     // Parse inventory items
-    cJSON* inventory_items = cJSON_GetObjectItem(json, "inventory_items");
-    if (inventory_items && cJSON_IsObject(inventory_items)) {
-        game->inventory_items_count = 0;
-        cJSON* item = NULL;
-        cJSON_ArrayForEach(item, inventory_items) {
-            if (game->inventory_items_count >= MAX_INVENTORY_ITEMS) break;
+    json_object* inventory_items;
+    if (json_object_object_get_ex(json, "inventory_items", &inventory_items)) {
+        if (json_object_is_type(inventory_items, json_type_object)) {
+            game->inventory_items_count = 0;
             
-            if (parse_inventory_item(item, &game->inventory_items[game->inventory_items_count], item->string)) {
-                game->inventory_items_count++;
+            // Iterate through inventory items object
+            json_object_object_foreach(inventory_items, item_id, item_obj) {
+                if (game->inventory_items_count >= MAX_INVENTORY_ITEMS) break;
+                
+                if (parse_inventory_item(item_obj, &game->inventory_items[game->inventory_items_count], item_id)) {
+                    game->inventory_items_count++;
+                }
             }
         }
     }
     
     // Parse player data
-    cJSON* player = cJSON_GetObjectItem(json, "player");
-    if (player) {
-        cJSON* current_location = cJSON_GetObjectItem(player, "current_location");
-        if (current_location && cJSON_IsString(current_location)) {
-            safe_strcpy(game->player.current_location, current_location->valuestring, 
+    json_object* player;
+    if (json_object_object_get_ex(json, "player", &player)) {
+        const char* current_location = get_json_string(player, "current_location");
+        if (current_location) {
+            safe_strcpy(game->player.current_location, current_location, 
                        sizeof(game->player.current_location));
         } else {
             // Default to start location
@@ -237,16 +265,20 @@ GameState* load_game(const char* filename) {
         }
         
         // Parse player inventory
-        cJSON* inventory = cJSON_GetObjectItem(player, "inventory");
-        if (inventory && cJSON_IsArray(inventory)) {
-            game->player.inventory_count = 0;
-            cJSON* item = NULL;
-            cJSON_ArrayForEach(item, inventory) {
-                if (game->player.inventory_count >= MAX_INVENTORY_ITEMS) break;
-                if (cJSON_IsString(item)) {
-                    safe_strcpy(game->player.inventory[game->player.inventory_count], 
-                               item->valuestring, sizeof(game->player.inventory[game->player.inventory_count]));
-                    game->player.inventory_count++;
+        json_object* inventory;
+        if (json_object_object_get_ex(player, "inventory", &inventory)) {
+            if (json_object_is_type(inventory, json_type_array)) {
+                game->player.inventory_count = 0;
+                int array_len = json_object_array_length(inventory);
+                
+                for (int i = 0; i < array_len && game->player.inventory_count < MAX_INVENTORY_ITEMS; i++) {
+                    json_object* item = json_object_array_get_idx(inventory, i);
+                    if (json_object_is_type(item, json_type_string)) {
+                        safe_strcpy(game->player.inventory[game->player.inventory_count], 
+                                   json_object_get_string(item), 
+                                   sizeof(game->player.inventory[game->player.inventory_count]));
+                        game->player.inventory_count++;
+                    }
                 }
             }
         }
@@ -256,7 +288,7 @@ GameState* load_game(const char* filename) {
                    sizeof(game->player.current_location));
     }
     
-    cJSON_Delete(json);
+    json_object_put(json);
     return game;
 }
 

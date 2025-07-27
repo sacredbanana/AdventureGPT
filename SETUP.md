@@ -11,7 +11,7 @@ This guide will help you get AdventureGPT up and running on your system.
 ### For the C Engine
 - C compiler (GCC, Clang, or MSVC)
 - SDL2 development libraries
-- cJSON library
+- json-c library
 
 ## Platform-Specific Setup
 
@@ -35,6 +35,7 @@ This guide will help you get AdventureGPT up and running on your system.
 
 4. **Build the engine**:
    ```bash
+   cd engine
    make
    ```
 
@@ -44,7 +45,7 @@ This guide will help you get AdventureGPT up and running on your system.
    ```bash
    sudo apt-get update
    sudo apt-get install python3 python3-pip build-essential
-   sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libcjson-dev
+   sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libjson-c-dev
    ```
 
 2. **Install Python dependencies**:
@@ -70,11 +71,11 @@ This guide will help you get AdventureGPT up and running on your system.
 3. **For the C engine**, you have several options:
    - **Option A: Use vcpkg** (recommended)
      ```cmd
-     vcpkg install sdl2 sdl2-image sdl2-ttf cjson
+     vcpkg install sdl2 sdl2-image sdl2-ttf json-c
      ```
    - **Option B: Use MSYS2/MinGW**
      ```bash
-     pacman -S mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-SDL2_ttf mingw-w64-x86_64-cjson
+     pacman -S mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-SDL2_ttf mingw-w64-x86_64-json-c
      ```
 
 4. **Build the engine** (adjust paths as needed):

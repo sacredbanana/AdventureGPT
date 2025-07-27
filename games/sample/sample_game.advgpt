@@ -43,14 +43,26 @@
       "exits": {
         "down": "tower_stairs"
       },
-      "items": [],
+      "items": [
+        "ancient_key"
+      ],
       "flags_required": {},
       "flags_set": {},
       "first_visit_text": "",
       "visited": false
     }
   },
-  "inventory_items": {},
+  "inventory_items": {
+    "ancient_key": {
+      "name": "Ancient Key",
+      "description": "A weathered bronze key with mysterious runes.",
+      "takeable": true,
+      "useable": true,
+      "use_text": "The key glows briefly with magical energy.",
+      "use_flags_required": {},
+      "use_flags_set": {}
+    }
+  },
   "game_flags": {},
   "player": {
     "inventory": [],

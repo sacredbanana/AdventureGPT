@@ -12,7 +12,7 @@ A multiplatform tool for creating and playing text adventure games with static i
 
 - **Lightweight Game Engine** (C + SDL2)
   - Cross-platform support (Windows, macOS, Linux)
-  - Future AmigaOS compatibility
+  - Future AmigaOS compatibility (uses json-c for Amiga port support)
   - Efficient .advgpt file format
   - Image and text rendering
 
@@ -31,10 +31,12 @@ AdventureGPT/
 │   ├── advgpt_format.py      # Game format specification
 │   └── ...
 ├── engine/                   # C-based game engine
-│   ├── main.c                # Engine entry point
-│   ├── adventure_engine.h    # Engine header
-│   ├── adventure_engine.c    # Engine implementation
-│   └── Makefile              # Build system
+│   ├── src/                  # Source files
+│   │   ├── main.c           # Engine entry point
+│   │   ├── adventure_engine.h # Engine header
+│   │   └── adventure_engine.c # Engine implementation
+│   ├── build/               # Object files (generated)
+│   └── Makefile             # Build system
 ├── games/                    # Sample and exported games
 ├── assets/                   # Shared assets
 ├── requirements.txt          # Python dependencies
@@ -53,7 +55,7 @@ AdventureGPT/
 **For the C Engine:**
 - GCC or compatible C compiler
 - SDL2, SDL2_image, SDL2_ttf
-- cJSON library
+- json-c library
 
 ### Installation
 
@@ -75,8 +77,8 @@ AdventureGPT/
    ```
 
    **Manual installation:**
-   - **Ubuntu/Debian:** `sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libcjson-dev`
-   - **macOS:** `brew install sdl2 sdl2_image sdl2_ttf cjson`
+   - **Ubuntu/Debian:** `sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libjson-c-dev`
+   - **macOS:** `brew install sdl2 sdl2_image sdl2_ttf json-c`
    - **Windows:** Install libraries via vcpkg or manual setup
 
 4. **Build the engine:**

@@ -5,7 +5,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
-#include <cjson/cJSON.h>
+#include <json-c/json.h>
 #include "adventure_engine.h"
 
 #define WINDOW_WIDTH 1024
